@@ -1,0 +1,21 @@
+
+State Machine - |top|UART:uart_endpoint|UART_TX:transmitter|state
+Name state.TX_STOP state.TX_DATA state.TX_START state.TX_IDLE 
+state.TX_IDLE 0 0 0 0 
+state.TX_START 0 0 1 1 
+state.TX_DATA 0 1 0 1 
+state.TX_STOP 1 0 0 1 
+
+State Machine - |top|UART:uart_endpoint|RGBToMonochrome:pixel_converter|state
+Name state.WAIT_FOR_UART state.READ_BLUE state.READ_GREEN state.WAIT_FOR_RGB 
+state.WAIT_FOR_RGB 0 0 0 0 
+state.READ_GREEN 0 0 1 1 
+state.READ_BLUE 0 1 0 1 
+state.WAIT_FOR_UART 1 0 0 1 
+
+State Machine - |top|UART:uart_endpoint|UART_RX:receiver|state
+Name state.RX_STOP state.RX_DATA state.RX_START state.RX_IDLE 
+state.RX_IDLE 0 0 0 0 
+state.RX_START 0 0 1 1 
+state.RX_DATA 0 1 0 1 
+state.RX_STOP 1 0 0 1 
