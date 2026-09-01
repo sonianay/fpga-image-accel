@@ -18,9 +18,7 @@ module UART_RX
 
   localparam integer CLOCKS_PER_BIT = CLOCK_FREQ / BAUD_RATE;
   localparam integer HALF_BIT_CLOCKS = CLOCKS_PER_BIT / 2;
-  localparam integer COUNT_WIDTH = (CLOCKS_PER_BIT <= 2) 
-                                 ? 1 
-                                 : $clog2(CLOCKS_PER_BIT);
+  localparam integer COUNT_WIDTH = $clog2(CLOCKS_PER_BIT);
 
   logic [COUNT_WIDTH-1:0] baud_count;
   logic [2:0] bit_index;
@@ -140,7 +138,7 @@ module UART_TX
    output logic       done);
 
   localparam integer CLOCKS_PER_BIT = CLOCK_FREQ / BAUD_RATE;
-  localparam integer COUNT_WIDTH = (CLOCKS_PER_BIT <= 2) ? 1 : $clog2(CLOCKS_PER_BIT);
+  localparam integer COUNT_WIDTH = $clog2(CLOCKS_PER_BIT);
 
   typedef enum logic [1:0] {TX_IDLE, TX_START, TX_DATA, TX_STOP} tx_state_t;
   tx_state_t state;
