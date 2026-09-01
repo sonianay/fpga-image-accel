@@ -36,13 +36,21 @@ The goal of this framework is for the FPGA to perform the filtering quickly so t
 ### Architecture
 <img src="images/diagrams/architecture.png" width="90%" />
 
-From the left to right, the host connects to the Pico using USB-C, sending RGB pixel data from a designated frame onto `COM3`. The Pico then reads COM3, and encodes each RGB value into three individual 8-bit packets (one for red, one for green, one for blue). Each packet is then sent onto its UART `Tx` pin.
+From the left to right, the host connects to the Pico using USB-C, with the host sending RGB pixel data from a designated frame onto `COM3`. The Pico then sends information COM3, and encodes each RGB value into three individual 8-bit packets (one for red, one for green, one for blue). Each packet is then sent onto its UART `Tx` pin.
 
-A jumper wire connects the Pico's `Tx` pin to `GPIO_0[0]` of the FPGA. UART is set up for this project such that the only relevant packet is the data packet. This means that we only care about the start bit (1 bit, active low), the data bits (8 bits), and the stop bit (1 bit, active high). There is no NRZ encoding/decoding, or bit stuffing done for this implementation of the UART protocol on the PICO. There are also no parity bits or checksums to ensure the validity of data. The communication is full-duplex (meaning transmission and recieving on Pico possible at same time).
+A jumper wire connects the Pico's `Tx` pin to `GPIO_0[0]` of the FPGA. UART is set up for this project such that the only relevant packet is the data packet. This means that we only care about the start bit (1 bit, active low), the data bits (8 bits), and the stop bit (1 bit, active high). There is no NRZ encoding/decoding, or bit stuffing done for this implementation of the UART protocol on the PICO. There are also no parity bits or checksums to ensure the validity of data. The communication is full-duplex (meaning transmission and recieving on the Pico is possible at same time). Currently, there is no `req`/`ack` handshake between UART and the FPGA, so the process flow is turning on the FPGA first before the Pico is on (which, I know, is not ideal).
 
-After the FPGA actively monitors `GPIO_0[0]` until it detects the start of a packet/frame. The FPGA first looks for a falling edge, and ensure that the data on `GPIO_0[0]` is continously low (`1'b0`) up until the midpoint of the packet. Note that the clock (50 MHz) of the FPGA is sampling faster than the rate at which bits are sent from the pico (115200 baud). The intention of looking at the midpoint for verification is due to mixed clock/sampling rates between the FPGA and the Pico.
+After the FPGA actively monitors `GPIO_0[0]` until it detects the start of a packet/frame. The FPGA first looks for a falling edge, and ensures that the data on `GPIO_0[0]` is continously low (`1'b0`) up until the end of the middle of the start bit period of the UART frame. We don't read until the endpoint of the bit period, since we want to check the value of a bit for every midpoint of that bit's interval to ensure we are never out of bounds (see the image below).
 
-After the start bit is detected, each data bit is read, and the stop bit is also read. If the stop bit is valid, then the data is pushed into the FIFO. If the stop bit is not detected at the correct time, then the data is considered invalid and is not pushed into the FIFO.
+<img src="images/diagrams/midpoint.png" width=90%>
+
+*Sourced from 18-341 Lecture 13, Clock Domains from Prof Bill Nace @ CMU*
+
+We can calculate how the FPGA "knows" the number of clocks within each bit transmitted in a UART frame. The clock frequency is 50 MHz. The baud rate of the Pico is 115200. Note that for UART, baud rate is equivalent to bit rate, since each UART symbol carries one bit.
+
+So if we divide the clock frequency by the baud rate, we get the number of clocks per bit, called `CLOCKS_PER_BIT` in `uart.sv`. After `baud_count` equals `CLOCKS_PER_BIT - 1`, then we know the number of clocks we need to wait for a bit.
+
+After the start bit is detected, each data bit is read, and the stop bit is also read. If the stop bit is valid.
 
 The RGB Monochrome module reads the FIFO when it has a size of 3 elements (representing red, green, and blue pixel values). It then pops all 3 elements from the FIFO into it's own registers, and checks whether or not all of these 8-bit values added together exceeds a "gray" threshold (set to `10'd384`, which is RGB of standard gray added together). If it exceeds the threshold, the output is a 1-bit value asserted to `1'b1` representing white, otherwise it is set to `1'b0` representing black. 
 
