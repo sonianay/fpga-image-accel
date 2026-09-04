@@ -1,4 +1,4 @@
-# Video Game FPGA Image Accelerator
+# Video Game Image Processing Accelerator
 
 This project implements an image filtering accelerator onto the FPGA, which takes frames from 1080p, 60 fps gameplay and applies a 1-bit monochrome filter to be analyzed by PyTorch. Currently, the PyTorch framework is not implemented for bounding boxes, but the basic sending logic from the Host -> Raspberry Pi Pico -> FPGA is complete.
 
