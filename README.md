@@ -2,7 +2,7 @@
 
 This project implements an image filtering accelerator onto the FPGA, which takes frames from 1080p, 60 fps gameplay and applies a 1-bit monochrome filter to be analyzed by PyTorch. Currently, the PyTorch framework is not implemented for bounding boxes, but the basic sending logic from the Host -> Raspberry Pi Pico -> FPGA is complete.
 
-## File contents
+## File Contents
 1. top.sv: Chip Interface for Altera DE0-CV (Cyclone V) FPGA.
 2. uart.sv: Sending/receiving protocol logic for UART (Rx, Tx).
 3. rgb_monochrome.sv: 1-bit monochrome filtering algorithm module.
